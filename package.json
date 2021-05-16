@@ -1,6 +1,6 @@
 {
   "name": "fast-sunrise-sunset",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Sunrise and sunset time calculation for given coordinates",
   "main": "dist/index.js",
   "devDependencies": {

@@ -27,7 +27,7 @@
  * Get day of year
  */
 export declare function getDayOfYear(date: Date): number;
-interface loc_params_t {
+export interface loc_params_t {
     hoursFromMeridian: number;
     sinDeg_latitude: number;
     cosDeg_latitude: number;
@@ -37,4 +37,3 @@ export declare function mk_loc_params(lat: number, lon: number): loc_params_t;
  * Calculate time distance(msec) from utc midnight  for either sunrise or sunset
  */
 export declare function calculate(dayOfYear: number, lp: loc_params_t, isSunrise: boolean): number;
-export {};

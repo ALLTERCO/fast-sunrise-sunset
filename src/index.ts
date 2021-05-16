@@ -95,7 +95,7 @@ function mod(a: number, b: number): number {
 }
 
 
-interface loc_params_t {
+export interface loc_params_t {
 	hoursFromMeridian:number;
 	sinDeg_latitude:number;
 	cosDeg_latitude:number;
