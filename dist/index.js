@@ -1,7 +1,10 @@
-'use strict';
-
-Object.defineProperty(exports, '__esModule', { value: true });
-
+"use strict";
+/**
+ *  Original library by By Matt Kane and Alexey Udivankin
+ *  Optimised for speed and multiple calls for mutiple locations by Stoian Ivanov
+ *
+ *  Original copyrights folow
+ */
 /**
  * Sunrise/sunset script. By Matt Kane. Adopted for NPM use by Alexey Udivankin.
  *
@@ -21,10 +24,8 @@ Object.defineProperty(exports, '__esModule', { value: true });
  * the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA,
  * or connect to: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html
  */
-/**
- * Default zenith
- */
-const DEFAULT_ZENITH = 90.8333;
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.calculate = exports.mk_loc_params = exports.getDayOfYear = void 0;
 /**
  * Degrees per hour
  */
@@ -33,65 +34,73 @@ const DEGREES_PER_HOUR = 360 / 24;
  * Msec in hour
  */
 const MSEC_IN_HOUR = 60 * 60 * 1000;
+const PIx2 = 2.0 * Math.PI;
+/**
+ * Default zenith
+ */
+const DEFAULT_ZENITH_cosDeg = cosDeg(90.8333);
 /**
  * Get day of year
  */
 function getDayOfYear(date) {
     return Math.ceil((date.getTime() - new Date(date.getFullYear(), 0, 1).getTime()) / 8.64e7);
 }
+exports.getDayOfYear = getDayOfYear;
 /**
  * Get sin of value in deg
  */
 function sinDeg(deg) {
-    return Math.sin(deg * 2.0 * Math.PI / 360.0);
+    return Math.sin(deg * PIx2 / 360.0);
 }
 /**
  * Get acos of value in deg
  */
 function acosDeg(x) {
-    return Math.acos(x) * 360.0 / (2 * Math.PI);
+    return Math.acos(x) * 360.0 / PIx2;
 }
 /**
  * Get asin of value in deg
  */
 function asinDeg(x) {
-    return Math.asin(x) * 360.0 / (2 * Math.PI);
+    return Math.asin(x) * 360.0 / PIx2;
 }
 /**
  * Get tan of value in deg
  */
 function tanDeg(deg) {
-    return Math.tan(deg * 2.0 * Math.PI / 360.0);
+    return Math.tan(deg * PIx2 / 360.0);
 }
 /**
  * Get cos of value in deg
  */
 function cosDeg(deg) {
-    return Math.cos(deg * 2.0 * Math.PI / 360.0);
+    return Math.cos(deg * PIx2 / 360.0);
 }
 /**
  * Get ramainder
  */
 function mod(a, b) {
     const result = a % b;
-    return result < 0
-        ? result + b
-        : result;
+    return (result < 0 ? result + b : result);
 }
+function mk_loc_params(lat, lon) {
+    return {
+        hoursFromMeridian: lon / DEGREES_PER_HOUR,
+        sinDeg_latitude: sinDeg(lat),
+        cosDeg_latitude: cosDeg(lat),
+    };
+}
+exports.mk_loc_params = mk_loc_params;
 /**
- * Calculate Date for either sunrise or sunset
+ * Calculate time distance(msec) from utc midnight  for either sunrise or sunset
  */
-function calculate(latitude, longitude, isSunrise, zenith, date) {
-    const dayOfYear = getDayOfYear(date);
-    const hoursFromMeridian = longitude / DEGREES_PER_HOUR;
-    const approxTimeOfEventInDays = isSunrise
-        ? dayOfYear + ((6 - hoursFromMeridian) / 24)
-        : dayOfYear + ((18.0 - hoursFromMeridian) / 24);
+function calculate(dayOfYear, lp, isSunrise) {
+    const approxTimeOfEventInDays = (isSunrise ? dayOfYear + ((6 - lp.hoursFromMeridian) / 24) : dayOfYear + ((18.0 - lp.hoursFromMeridian) / 24));
     const sunMeanAnomaly = (0.9856 * approxTimeOfEventInDays) - 3.289;
     const sunTrueLongitude = mod(sunMeanAnomaly + (1.916 * sinDeg(sunMeanAnomaly)) + (0.020 * sinDeg(2 * sunMeanAnomaly)) + 282.634, 360);
     const ascension = 0.91764 * tanDeg(sunTrueLongitude);
     let rightAscension;
-    rightAscension = 360 / (2 * Math.PI) * Math.atan(ascension);
+    rightAscension = 360 / (PIx2) * Math.atan(ascension);
     rightAscension = mod(rightAscension, 360);
     const lQuadrant = Math.floor(sunTrueLongitude / 90) * 90;
     const raQuadrant = Math.floor(rightAscension / 90) * 90;
@@ -99,29 +108,12 @@ function calculate(latitude, longitude, isSunrise, zenith, date) {
     rightAscension /= DEGREES_PER_HOUR;
     const sinDec = 0.39782 * sinDeg(sunTrueLongitude);
     const cosDec = cosDeg(asinDeg(sinDec));
-    const cosLocalHourAngle = ((cosDeg(zenith)) - (sinDec * (sinDeg(latitude)))) / (cosDec * (cosDeg(latitude)));
-    const localHourAngle = isSunrise
-        ? 360 - acosDeg(cosLocalHourAngle)
-        : acosDeg(cosLocalHourAngle);
+    const cosLocalHourAngle = ((DEFAULT_ZENITH_cosDeg) - (sinDec * (lp.sinDeg_latitude))) / (cosDec * (lp.cosDeg_latitude));
+    const localHourAngle = (isSunrise ? 360 - acosDeg(cosLocalHourAngle) : acosDeg(cosLocalHourAngle));
     const localHour = localHourAngle / DEGREES_PER_HOUR;
     const localMeanTime = localHour + rightAscension - (0.06571 * approxTimeOfEventInDays) - 6.622;
-    const time = mod(localMeanTime - (longitude / DEGREES_PER_HOUR), 24);
-    const utcMidnight = Date.UTC(date.getFullYear(), date.getMonth(), date.getDate());
+    const time = mod(localMeanTime - (lp.hoursFromMeridian), 24);
     // Created date will be set to local (system) time zone.
-    return new Date(utcMidnight + (time * MSEC_IN_HOUR));
+    return time * MSEC_IN_HOUR;
 }
-/**
- * Calculate Sunrise time for given longitude, latitude, zenith and date
- */
-function getSunrise(latitude, longitude, date = new Date()) {
-    return calculate(latitude, longitude, true, DEFAULT_ZENITH, date);
-}
-/**
- * Calculate Sunset time for given longitude, latitude, zenith and date
- */
-function getSunset(latitude, longitude, date = new Date()) {
-    return calculate(latitude, longitude, false, DEFAULT_ZENITH, date);
-}
-
-exports.getSunrise = getSunrise;
-exports.getSunset = getSunset;
+exports.calculate = calculate;
