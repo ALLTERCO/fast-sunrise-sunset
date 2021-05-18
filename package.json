@@ -1,6 +1,6 @@
 {
   "name": "fast-sunrise-sunset",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "description": "Sunrise and sunset time calculation for given coordinates",
   "main": "dist/index.js",
   "devDependencies": {
@@ -11,6 +11,7 @@
   },
   "scripts": {
     "build": "tsc",
+    "wbuild": "tsc -w",
     "test": "jest"
   },
   "repository": {

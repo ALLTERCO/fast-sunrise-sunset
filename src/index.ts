@@ -48,7 +48,9 @@ const DEFAULT_ZENITH_cosDeg = cosDeg(90.8333);
  * Get day of year
  */
 export function getDayOfYear(date: Date): number {
-  return Math.ceil((date.getTime() - new Date(date.getFullYear(), 0, 1).getTime()) / 8.64e7);
+	
+	return Math.ceil((date.getTime() - Date.UTC(date.getUTCFullYear(), 0, 1)) / 8.64e7)+1;
+	//return Math.ceil((date.getTime() - new Date(date.getFullYear(), 0, 1).getTime()) / 8.64e7);
 }
 
 /**
