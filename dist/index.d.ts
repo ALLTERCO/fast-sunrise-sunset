@@ -34,6 +34,7 @@ export interface loc_params_t {
 }
 export declare function mk_loc_params(lat: number, lon: number): loc_params_t;
 /**
- * Calculate time distance(msec) from utc midnight  for either sunrise or sunset
+ * Calculate time distance(msec) from utc midnight  for either sunrise or sunset.
+ * If there will be no sunrise/sunset that day return  Number.MIN_VALUE
  */
 export declare function calculate(dayOfYear: number, lp: loc_params_t, isSunrise: boolean): number;

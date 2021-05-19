@@ -112,7 +112,8 @@ export function mk_loc_params(lat:number,lon:number):loc_params_t{
 }
 
 /**
- * Calculate time distance(msec) from utc midnight  for either sunrise or sunset
+ * Calculate time distance(msec) from utc midnight  for either sunrise or sunset.
+ * If there will be no sunrise/sunset that day return  Number.MIN_VALUE
  */
 export function calculate(dayOfYear:number, lp:loc_params_t,  isSunrise: boolean): number  {
 
@@ -134,7 +135,9 @@ export function calculate(dayOfYear:number, lp:loc_params_t,  isSunrise: boolean
 	const sinDec = 0.39782 * sinDeg(sunTrueLongitude);
 	const cosDec = cosDeg(asinDeg(sinDec));
 	const cosLocalHourAngle = ((DEFAULT_ZENITH_cosDeg) - (sinDec * (lp.sinDeg_latitude))) / (cosDec * (lp.cosDeg_latitude));
-
+	if (cosLocalHourAngle>1 || cosLocalHourAngle<-1) {
+		return Number.MIN_VALUE;
+	}
 	const localHourAngle = (isSunrise? 360 - acosDeg(cosLocalHourAngle) : acosDeg(cosLocalHourAngle));
 
 	const localHour = localHourAngle / DEGREES_PER_HOUR;

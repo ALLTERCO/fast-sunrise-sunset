@@ -93,7 +93,8 @@ function mk_loc_params(lat, lon) {
 }
 exports.mk_loc_params = mk_loc_params;
 /**
- * Calculate time distance(msec) from utc midnight  for either sunrise or sunset
+ * Calculate time distance(msec) from utc midnight  for either sunrise or sunset.
+ * If there will be no sunrise/sunset that day return  Number.MIN_VALUE
  */
 function calculate(dayOfYear, lp, isSunrise) {
     const approxTimeOfEventInDays = (isSunrise ? dayOfYear + ((6 - lp.hoursFromMeridian) / 24) : dayOfYear + ((18.0 - lp.hoursFromMeridian) / 24));
@@ -110,6 +111,9 @@ function calculate(dayOfYear, lp, isSunrise) {
     const sinDec = 0.39782 * sinDeg(sunTrueLongitude);
     const cosDec = cosDeg(asinDeg(sinDec));
     const cosLocalHourAngle = ((DEFAULT_ZENITH_cosDeg) - (sinDec * (lp.sinDeg_latitude))) / (cosDec * (lp.cosDeg_latitude));
+    if (cosLocalHourAngle > 1 || cosLocalHourAngle < -1) {
+        return Number.MIN_VALUE;
+    }
     const localHourAngle = (isSunrise ? 360 - acosDeg(cosLocalHourAngle) : acosDeg(cosLocalHourAngle));
     const localHour = localHourAngle / DEGREES_PER_HOUR;
     const localMeanTime = localHour + rightAscension - (0.06571 * approxTimeOfEventInDays) - 6.622;
